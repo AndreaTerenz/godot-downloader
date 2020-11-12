@@ -1,3 +1,4 @@
+from PyColorText import PyCT as ct
 from bs4 import BeautifulSoup
 from pathlib import Path
 import requests, re, zipfile, os
@@ -28,18 +29,19 @@ def print_array(arr):
     for a in arr:
         print(a)
 
-if __name__ == '__main__':
-
-    if (out_dir := input("Output location (Enter to use current folder) >> ")) == "":
-        out_dir = str(Path.cwd())
-    elif not(Path.is_absolute(Path(out_dir))):
+def get_output_dir():
+    if (d := input("Output location (Enter to use current folder) >> ")) == "":
+        d = str(Path.cwd())
+    elif not(Path.is_absolute(Path(d))):
         home = str(Path.home())
         home_as_root = input(f"Path isn't absolute - use home directory {home} as path root [Y/n]? ")
 
         if (home_as_root != "n"):
-            out_dir = home + "/" + out_dir  
+            d = home + "/" + d  
         
-    print(f"Output directory: {out_dir}")
+    return d
+
+if __name__ == '__main__':
 
     #PHASE 1: Get the link to the last version's directory
 
@@ -47,22 +49,35 @@ if __name__ == '__main__':
     last_stable_url = urls[-2]+"/"
     last_url = urls[-1]+"/"
 
-    print(f"Last stable release: {last_stable_url}")
-    print(f"Last release: {last_url}")
+    last_stable = last_stable_url.split("/")[-2]
+    last = last_url.split("/")[-2]
 
     #PHASE 2: Check if the last version has a stable release (aka if its page contains a link to a zip file)
 
     archive_regex = r"x11\.64\.zip$"
     all_urls = get_filtered_urls(last_url, "")
     urls = get_filtered_urls(last_url, archive_regex)
-    
-    print_array(urls)
 
     if len(urls) == 0:
-        #PASE 2b: if the latest version is not stable yet, get the link to the latest beta/rc
-        urls = get_filtered_urls(all_urls[-1]+"/", archive_regex)
+        proceed = input(ct("This version doesn't have a stable release yet - download anyway [Y/n]? ", "yellow")).lower()
+
+        if (proceed in ["", "y"]):        
+            #PASE 2b: if the latest version is not stable yet, get the link to the latest beta/rc
+            urls = get_filtered_urls(all_urls[-1]+"/", archive_regex)
+            print(ct(f"Selected version: {last}", "green"))
+        else:
+            proceed = input(ct(f"Download latest stable version ({last_stable}) instead [Y/n]? ", "yellow")).lower()
+
+            if (proceed == "n"):
+                exit(-1)
+            
+            urls = get_filtered_urls(last_stable_url, archive_regex)
+            print(ct(f"Selected version: {last_stable}", "green"))
     
     #PHASE 3: Download the zip file
+
+    out_dir = get_output_dir()
+    print(ct(f"Output directory: {out_dir}", "green"))
 
     print("Downloading file...")
 
@@ -75,7 +90,11 @@ if __name__ == '__main__':
 
     #PHASE 4 : Unzip the file
 
+    print("Unzipping archive...")
+
     with zipfile.ZipFile(archive_name, 'r') as zip_ref:
         zip_ref.extractall(out_dir)
     
     os.remove(archive_name)
+
+    print(ct("Done", "green"))
