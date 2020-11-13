@@ -28,7 +28,9 @@ def get_filtered_links(url, regex):
 if __name__ == '__main__':
 
     def get_output_dir():
-        if (d := input("Output location (Enter to use current folder) >> ")) == "":
+        d = input("Output location (Enter to use current folder) >> ")
+        
+        if d == "":
             d = str(Path.cwd())
         elif not(Path(d).is_absolute()):
             home = str(Path.home())
@@ -43,7 +45,8 @@ if __name__ == '__main__':
     last_download = ""
 
     try:
-        last_download = (vf := open(version_file, "r")).readline()
+        vf = open(version_file, "r")
+        last_download = vf.readline()
         vf.close()
     except OSError:
         print(ct("[WARNING]", "red") + " Can't find .version file")
@@ -59,8 +62,9 @@ if __name__ == '__main__':
 
     #PHASE 2: Check if the last version has a stable release (aka if its page contains a link to a zip file)
 
+    archive_regex = r"x11\.64\.zip$"
     all_urls = get_filtered_links(last_url, "")
-    urls = get_filtered_links(last_url, archive_regex := r"x11\.64\.zip$")
+    urls = get_filtered_links(last_url, archive_regex)
 
     if len(urls) == 0:
         proceed = input(ct(f"Latest version ({last}) doesn't have a stable release yet - download anyway [Y/n]? ", "yellow")).lower()
