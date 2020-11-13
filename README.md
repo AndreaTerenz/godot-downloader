@@ -4,8 +4,6 @@ A simple python script to quickly download the latest version of the Godot Game 
 
 ## Requirements
 
-- `pip install bs4 PyColorText`
-
 [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) is used to parse webpages and extract the url of the file to be downloaded, while [PyColorText](https://github.com/roshanlam/PyCTlink) is used to embelish the UI
 
 ## Installation
